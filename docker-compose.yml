@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ocd
+      POSTGRES_PASSWORD: ocd_secret
+      POSTGRES_DB: ocd_budget
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ocd -d ocd_budget']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - '4000:4000'
+    environment:
+      DATABASE_URL: postgresql://ocd:ocd_secret@postgres:5432/ocd_budget?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: docker-dev-access-secret-min-32-chars!!
+      JWT_REFRESH_SECRET: docker-dev-refresh-secret-min-32-chars!
+      CORS_ORIGIN: http://localhost:3000
+      API_PORT: 4000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    ports:
+      - '3000:3000'
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

@@ -1,0 +1,35 @@
+{
+  "name": "ocd-budget-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "조직역량개발비 관리 시스템",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm run dev -w @ocd/api",
+    "dev:web": "npm run dev -w @ocd/web",
+    "build": "npm run build -w @ocd/shared && npm run build -w @ocd/api && npm run build -w @ocd/web",
+    "lint": "npm run lint -w @ocd/api && npm run lint -w @ocd/web",
+    "test": "npm run test -w @ocd/api",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "prisma": "^6.8.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.8.0",
+    "bcrypt": "^5.1.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
