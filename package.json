@@ -8,16 +8,25 @@
     "packages/*"
   ],
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
     "dev:api": "npm run dev -w @ocd/api",
     "dev:web": "npm run dev -w @ocd/web",
-    "build": "npm run build -w @ocd/shared && npm run build -w @ocd/api && npm run build -w @ocd/web",
+    "build": "npm run build:shared && npm run build:api && npm run build:web",
+    "build:shared": "npm run build -w @ocd/shared",
+    "build:api": "npm run build -w @ocd/api",
+    "build:web": "npm run build -w @ocd/web",
+    "start:api": "npm run start -w @ocd/api",
+    "start:web": "npm run start -w @ocd/web",
     "lint": "npm run lint -w @ocd/api && npm run lint -w @ocd/web",
-    "test": "npm run test -w @ocd/api",
+    "test": "npm run test:e2e -w @ocd/api",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "docker:prod": "docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

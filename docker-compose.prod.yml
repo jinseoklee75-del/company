@@ -1,0 +1,76 @@
+# 프로덕션 배포용 (GitHub Actions / VPS)
+# 사용: docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ocd}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      POSTGRES_DB: ${POSTGRES_DB:-ocd_budget}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-ocd} -d ${POSTGRES_DB:-ocd_budget}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ocd-net
+
+  api:
+    image: ${API_IMAGE:-ghcr.io/your-org/ocd-api:latest}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ocd}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ocd_budget}?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?JWT_ACCESS_SECRET required}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET required}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      API_PORT: 4000
+      API_PUBLIC_URL: ${API_PUBLIC_URL}
+      UPLOAD_DIR: /app/uploads
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_REGION: ${S3_REGION:-us-east-1}
+    volumes:
+      - uploads:/app/uploads
+    ports:
+      - '${API_PORT:-4000}:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ocd-net
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/your-org/ocd-web:latest}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    depends_on:
+      - api
+    networks:
+      - ocd-net
+
+volumes:
+  pgdata:
+  uploads:
+
+networks:
+  ocd-net:
+    driver: bridge

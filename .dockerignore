@@ -1,0 +1,34 @@
+# Dependencies & build
+node_modules
+**/node_modules
+**/.next
+**/dist
+coverage
+.turbo
+
+# Git & IDE
+.git
+.github
+.cursor
+.vscode
+*.md
+!README.md
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Dev / docs (배포 이미지에 불필요)
+docs
+VIBE_CODING_PROMPT.md
+uploads
+**/*.spec.ts
+**/test
+apps/api/jest.config.js
+
+# Misc
+*.log
+.DS_Store
+Thumbs.db

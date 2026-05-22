@@ -34,21 +34,27 @@
 └── .github/workflows/
 ```
 
-## 빠른 시작
+## 빠른 시작 (로컬 개발)
 
 ```bash
-# 의존성 설치
 npm install
-
-# 환경 변수
 cp .env.example .env
-
-# DB 마이그레이션 (refresh_tokens 포함)
-npx prisma migrate dev
+npm run db:migrate
 npm run db:seed
-
-# 개발 서버 (API + Web)
 npm run dev
+```
+
+## GitHub 배포
+
+상세: **[DEPLOY.md](DEPLOY.md)**
+
+1. `main` 브랜치 push → **GHCR**에 `ocd-api`, `ocd-web` 이미지 자동 빌드
+2. 서버에서 `docker-compose.prod.yml` + `.env.production` 으로 실행
+
+```bash
+cp .env.production.example .env.production
+# GHCR 이미지 경로·도메인·JWT 시크릿 설정
+npm run docker:prod
 ```
 
 ### Phase 2 기능 (적용 완료)
